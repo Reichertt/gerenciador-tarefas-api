@@ -101,6 +101,12 @@ php artisan queue:work
 php artisan notificar:vencimento
 ```
 
+### PostMan:
+
+```json
+Os arquivos Postman_rotas.json e Postman_environments.json contem as rotas, variaveis e scripts para importar diretamente em seu PostMan.
+```
+
 ---
 
 ## 🧪 Testando Filtros
