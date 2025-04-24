@@ -1,61 +1,140 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# API - Gerenciador de Tarefas
 
-## About Laravel
+Esta é uma API RESTful para gerenciamento de tarefas, desenvolvida com Laravel 10, PHP 8.2, MySQL e Docker. Inclui autenticação com JWT, atribuição de tarefas, sistema de tags reutilizáveis, envio de notificações por e-mail, e muito mais.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📦 Requisitos
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Docker
+- Docker Compose
+- Git (opcional)
+- Make (opcional, se for usar `make up` etc)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Instalação
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1. Clone o projeto
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/seu-usuario/gerenciador-tarefas-api.git
+cd gerenciador-tarefas-api
+```
 
-## Laravel Sponsors
+### 2. Crie o `.env`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cp .env.example .env
+```
 
-### Premium Partners
+O arquivo `.env.example` já está preenchido com os dados padrão, incluindo o `JWT_SECRET`:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+```env
+JWT_SECRET=0bef2a69f32b1974adabee9b8c405581aa00f3e9f701aaa59d4256711ce9b7aa
+```
 
-## Contributing
+Você pode ajustar conforme necessário.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Suba os containers
 
-## Code of Conduct
+```bash
+docker-compose up -d --build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Acesse o container
 
-## Security Vulnerabilities
+```bash
+docker exec -it laravel-app bash
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Instale dependências
 
-## License
+```bash
+composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 6. Rode as migrations
+
+```bash
+php artisan migrate
+```
+
+---
+
+## 🔐 Autenticação
+
+- JWT via `php-open-source-saver/jwt-auth`
+- Para autenticar, envie seu e-mail e senha em `/api/login`
+- Use o token JWT no header `Authorization: Bearer {seu_token}` para rotas protegidas
+
+---
+
+## ✉️ E-mails
+
+Utilizamos o [Mailtrap](https://mailtrap.io) para testes:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=ebb3a32954020f
+MAIL_PASSWORD=cd183cbbe10343
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=no-reply@gerenciador.com
+MAIL_FROM_NAME="Gerenciador de Tarefas"
+```
+
+### Para testar e-mails:
+
+1. Rode o worker de fila:
+```bash
+php artisan queue:work
+```
+
+2. Crie uma tarefa com `user_id` de outro usuário para que ele receba uma notificação.
+
+3. Para notificações automáticas (vencimento em 2 dias):
+
+```bash
+php artisan notificar:vencimento
+```
+
+---
+
+## 🧪 Testando Filtros
+
+- Use a rota POST `/api/tarefas/filtrar` com JSON no body.
+- Todos os campos devem estar presentes (podem estar vazios).
+
+```json
+{
+  "status": "",
+  "prioridade": "",
+  "user_id": 1,
+  "tags": [""],
+  "orderby": "",
+  "order": ""
+}
+```
+
+---
+
+## 📋 Funcionalidades
+
+- CRUD de tarefas
+- Atribuição de tarefas com e-mail assíncrono
+- Sistema de tags reutilizáveis
+- Autenticação JWT
+- Notificações de vencimento (cron job manual)
+- Proteção por usuário responsável/admin
+- Filtros e ordenações avançados
+
+---
+
+## ✅ Finalização
+
+Projeto completo e funcional. Qualquer dúvida, entre em contato com o desenvolvedor.
+
+---
