@@ -18,7 +18,13 @@ class NotificarTarefasVencimento extends Command
 
         foreach ($tarefas as $tarefa) {
             if ($tarefa->user && $tarefa->user->email) {
-                Mail::to($tarefa->user->email)->queue(new TarefaAtribuida($tarefa));
+                Mail::to($tarefa->user->email)->queue(
+                    new TarefaAtribuida(
+                        $tarefa,
+                        'Sua tarefa vence em 2 dias',
+                        'Aviso: tarefa prestes a vencer'
+                    )
+                );
             }
         }
 

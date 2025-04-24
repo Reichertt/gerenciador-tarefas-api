@@ -86,6 +86,11 @@ MAIL_FROM_ADDRESS=no-reply@gerenciador.com
 MAIL_FROM_NAME="Gerenciador de Tarefas"
 ```
 
+Caso deseje fazer o teste quando uma nova tarefa é criada e quando faltam 2 dias para a data de vencimento dela, pode se utilizar esse E-mail e senha, que são as mesmas credenciais das variaveis de ambiente:
+
+E-mail: julianamoretti912@gmail.com
+senha: Juliana3524@
+
 ### Para testar e-mails:
 
 1. Rode o worker de fila:
@@ -103,7 +108,7 @@ php artisan notificar:vencimento
 
 ### PostMan:
 
-```json
+```bash
 Os arquivos Postman_rotas.json e Postman_environments.json contem as rotas, variaveis e scripts para importar diretamente em seu PostMan.
 ```
 
