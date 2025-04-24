@@ -1,14 +1,14 @@
 @component('mail::message')
-# Nova Tarefa Atribuída
+# Olá, {{ $tarefa->user->name ?? 'Usuário' }}
 
-Uma nova tarefa foi atribuída a você:
+{{ $mensagem }}
 
-**Título:** {{ $tarefa->titulo }}  
-**Descrição:** {{ $tarefa->descricao }}  
-**Vencimento:** {{ \Carbon\Carbon::parse($tarefa->data_vencimento)->format('d/m/Y') }}
+---
 
-@component('mail::button', ['url' => ''])
-Ver Tarefa
-@endcomponent
+**Título:** {{ $tarefa->titulo }}
+
+**Descrição:** {{ $tarefa->descricao }}
+
+**Data de Vencimento:** {{ \Carbon\Carbon::parse($tarefa->data_vencimento)->format('d/m/Y') }}
 
 @endcomponent

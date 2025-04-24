@@ -31,70 +31,111 @@ class TarefaController extends Controller
     // Criar tarefa
     public function store(Request $request)
     {
+        // Lista de chaves obrigatórias
+        $camposObrigatorios = ['titulo', 'descricao', 'user_id', 'status', 'prioridade', 'data_vencimento', 'tags'];
+
+        // Verifica se todos os campos foram enviados
+        foreach ($camposObrigatorios as $campo) {
+            if (!$request->has($campo)) {
+                return response()->json([
+                    'message' => "O campo '{$campo}' é obrigatório no corpo da requisição."
+                ], 422);
+            }
+        }
+
+        // Limpa valores vazios do array de tags
+        $tags = collect($request->input('tags', []))
+            ->filter(fn($tag) => filled($tag))
+            ->values()
+            ->all();
+    
+        $request->merge(['tags' => $tags]);
+    
         $request->validate([
             'titulo' => 'required|string|max:255',
-            'descricao' => 'required|string',
-            'status' => 'required|in:pendente,em andamento,concluído',
+            'descricao' => 'nullable|string',
+            'status' => 'required|in:pendente,em_andamento,concluida',
             'prioridade' => 'required|in:baixa,média,alta',
             'data_vencimento' => 'required|date',
             'user_id' => 'required|exists:users,id',
-            'tags' => 'array'
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|exists:tags,nome',
+        ], [
+            'tags.*.exists' => 'Uma ou mais tags fornecidas não existem.',
         ]);
     
         $tarefa = Tarefa::create($request->only([
             'titulo', 'descricao', 'status', 'prioridade', 'data_vencimento', 'user_id'
         ]));
     
-        if ($request->has('tags')) {
-            $tagsIds = $this->getOrCreateTags($request->tags);
-            $tarefa->tags()->sync($tagsIds);
+        if (!empty($tags)) {
+            $tarefa->tags()->sync(Tag::whereIn('nome', $tags)->get());
         }
-    
+
         // 🔔 Envia notificação ao usuário responsável
         $user = User::find($request->user_id);
         if ($user) {
             $user->notify(new TarefaAtribuida($tarefa));
         }
     
-        return response()->json($tarefa, 201);
-    }
+        return response()->json($tarefa->load('tags'), 201);
+    }     
 
     // Mostrar uma tarefa
     public function show($id)
     {
-        $tarefa = Tarefa::with('tags')->findOrFail($id);
+        $tarefa = Tarefa::with('tags')->find($id);
+    
+        if (!$tarefa) {
+            return response()->json([
+                'message' => 'Essa tarefa não existe mais no banco de dados.'
+            ], 404);
+        }
+    
         return response()->json($tarefa);
     }
 
     // Atualizar tarefa
     public function update(Request $request, $id)
     {
-        $tarefa = Tarefa::findOrFail($id);
-
-        if (Auth::id() !== $tarefa->user_id && !Auth::user()->isAdmin()) {
+        $tarefa = Tarefa::find($id);
+    
+        if (!$tarefa) {
+            return response()->json([
+                'message' => 'Essa tarefa não existe mais no banco de dados.'
+            ], 404);
+        }
+    
+        if (Auth::id() !== $tarefa->user_id && !(Auth::user() && method_exists(Auth::user(), 'isAdmin') && Auth::user()->isAdmin())) {
             return response()->json(['error' => 'Não autorizado'], 403);
         }
-
+    
         $request->validate([
             'titulo' => 'sometimes|string|max:255',
             'descricao' => 'sometimes|string',
             'status' => 'sometimes|in:pendente,em andamento,concluído',
             'prioridade' => 'sometimes|in:baixa,média,alta',
             'data_vencimento' => 'sometimes|date',
-            'tags' => 'array'
+            'tags' => 'sometimes|array',
+            'tags.*' => 'string'
         ]);
-
+    
         $tarefa->update($request->only([
             'titulo', 'descricao', 'status', 'prioridade', 'data_vencimento'
         ]));
-
+    
         if ($request->has('tags')) {
-            $tagsIds = $this->getOrCreateTags($request->tags);
-            $tarefa->tags()->sync($tagsIds);
+            $tags = array_filter($request->tags, fn ($tag) => !empty($tag));
+            if (!empty($tags)) {
+                $tagsIds = $this->getOrCreateTags($tags);
+                $tarefa->tags()->sync($tagsIds);
+            } else {
+                $tarefa->tags()->detach();
+            }
         }
-
+    
         return response()->json($tarefa);
-    }
+    }    
 
     // Deletar tarefa
     public function destroy($id)

@@ -12,15 +12,17 @@ class TarefaAtribuida extends Mailable
     use Queueable, SerializesModels;
 
     public $tarefa;
+    public $mensagem;
 
-    public function __construct(Tarefa $tarefa)
+    public function __construct(Tarefa $tarefa, $mensagem = 'Nova tarefa atribuída a você')
     {
         $this->tarefa = $tarefa;
+        $this->mensagem = $mensagem;
     }
 
     public function build()
     {
-        return $this->subject('Nova tarefa atribuída a você')
+        return $this->subject($this->mensagem)
                     ->markdown('emails.tarefa_atribuida');
     }
 }
