@@ -19,7 +19,7 @@ Esta é uma API RESTful para gerenciamento de tarefas, desenvolvida com Laravel 
 ### 1. Clone o projeto
 
 ```bash
-git clone https://github.com/seu-usuario/gerenciador-tarefas-api.git
+git clone https://github.com/Reichertt/gerenciador-tarefas-api.git
 cd gerenciador-tarefas-api
 ```
 
